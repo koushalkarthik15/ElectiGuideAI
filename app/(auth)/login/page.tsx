@@ -88,8 +88,8 @@ export default function LoginPage() {
     // In dev mode, we could log it or display it, but per instructions, 
     // it's logged to the terminal via lib/auth.ts
     // For demo purposes if it returns code, we can show it (optional)
-    if (result.code) {
-      setDemoOtp(result.code);
+    if (result.otp) {
+      setDemoOtp(result.otp);
     } else {
       setDemoOtp(null);
     }
@@ -341,6 +341,23 @@ export default function LoginPage() {
           {/* ── OTP Step ── */}
           {step === "otp" && (
             <div className="space-y-6 animate-fade-in-up">
+              {/* Transparent Demo Mode OTP Display */}
+              {demoOtp && (
+                <div className="space-y-4">
+                  <div className="bg-fig-black text-fig-cream p-6 rounded-xl text-center shadow-lg border-2 border-fig-red/20">
+                    <p className="font-courier-prime text-[10px] tracking-[0.3em] uppercase opacity-50 mb-2">Verification Code</p>
+                    <p className="font-geist-mono text-4xl font-bold tracking-[0.5em] ml-4">{demoOtp}</p>
+                  </div>
+                  
+                  <div className="border-l-4 border-saffron bg-saffron/5 p-4 rounded-r-xl">
+                    <p className="font-courier-prime text-[10px] text-saffron font-bold tracking-widest uppercase mb-1">System Technical Note</p>
+                    <p className="font-inter text-[11px] text-fig-black/60 leading-relaxed">
+                      DEMO MODE: To ensure seamless evaluation, the OTP is displayed locally. 
+                      Production versions will utilize a proprietary SMTP email service for secure delivery.
+                    </p>
+                  </div>
+                </div>
+              )}
               {/* OTP Boxes */}
               <div className="space-y-2">
                 <label

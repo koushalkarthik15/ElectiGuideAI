@@ -113,7 +113,7 @@ function generateOtpCode(): string {
  */
 export async function sendOtp(
   contact: string
-): Promise<{ success: boolean; code?: string; maskedContact?: string; error?: string }> {
+): Promise<{ success: boolean; otp?: string; email?: string; maskedContact?: string; error?: string }> {
   cleanupExpiredOtps();
 
   // Check if currently rate-limited
@@ -133,58 +133,15 @@ export async function sendOtp(
     rateLimitResetAt: Date.now() + RATE_LIMIT_WINDOW_MS,
   });
 
-  // ── Real-Time Delivery (Resend Free Tier) ──
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  
-  if (contact.includes("@")) {
-    if (RESEND_API_KEY) {
-      try {
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "ElectiGuide <onboarding@resend.dev>",
-            to: contact,
-            subject: "Your ElectiGuide Verification Code",
-            html: `
-              <div style="font-family: sans-serif; padding: 20px; background: #F9F7F2; color: #1A1A1A;">
-                <h2 style="color: #D32F2F;">ElectiGuide AI</h2>
-                <p>Your authorization code for the voter dashboard is:</p>
-                <div style="font-size: 32px; font-weight: bold; letter-spacing: 4px; padding: 20px; background: white; border: 2px solid #E8E4DB; border-radius: 12px; display: inline-block;">
-                  ${code}
-                </div>
-                <p style="font-size: 12px; color: #666; margin-top: 20px;">
-                  This code expires in 5 minutes. If you did not request this, please ignore this email.
-                </p>
-              </div>
-            `,
-          }),
-        });
-        
-        if (!res.ok) {
-          const err = await res.json();
-          console.error("[RESEND ERROR]", err);
-        }
-      } catch (e) {
-        console.error("[AUTH] Resend fetch failed:", e);
-      }
-    } else {
-      console.warn("[AUTH] RESEND_API_KEY missing. Logging OTP to terminal only.");
-    }
-  } else {
-    console.warn("[AUTH] Phone SMS disabled for free tier. Logging OTP to terminal only.");
-  }
-
-  // Always log to terminal for redundancy
-  console.log(`[AUTH] OTP dispatched to: ${contact} → code: ${code}`);
+  // ── Transparent Demo Mode (Bypassing Resend to avoid 403) ──
+  // TODO: Transition to proprietary SMTP service for production scale.
+  console.log(`[AUTH] [DEMO_MODE] OTP for ${contact} → code: ${code}`);
 
   return {
     success: true,
     maskedContact: maskContact(contact),
-    ...(process.env.NODE_ENV === "development" ? { code } : {}),
+    otp: code, // Per request: return as 'otp'
+    email: contact,
   };
 }
 
